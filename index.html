@@ -1,61 +1,178 @@
 <!DOCTYPE html>
 <html>
-<head>
-<title>AutoBeats</title>
-</head>
-<body style="background:#333">
-<script src="autobeats.js"></script>
-<script>
-window.onload=function(){
-	audioctx=new AudioContext();
-	analyser=audioctx.createAnalyser();
-	analyser.connect(audioctx.destination);
-	beats=new AutoBeats(null,null,audioctx,analyser);
-	Setup();
-	var dat=new Uint8Array(128);
-	var cv=document.getElementById("canvas");
-	cv.style.weight="100%";
-	var ctx=cv.getContext("2d");
-	requestAnimationFrame(function(){
-		analyser.getByteTimeDomainData(dat);
-		ctx.fillStyle="#000";
-		ctx.strokeStyle="#0f0";
-		ctx.lineWidth=2;
-		ctx.fillRect(0,0,512,512);
-		ctx.beginPath();
-		ctx.moveTo(0,256-(dat[0]-128));
-		for(var i=0;i<128;++i)
-			ctx.lineTo(i*4,256-(dat[i]-128));
-		ctx.stroke();
-		requestAnimationFrame(arguments.callee);
-	});
-};
-function Setup(){
-	beats.setTitle(document.getElementById("title").value);
-	var bpm;
-	if(document.getElementById("bpmauto").checked)
-		bpm=beats.getBpm();
-	else {
-		bpm=document.getElementById("bpm").value;
-		if(bpm)
-			beats.setBpm(bpm);
-	}
-	document.getElementById("bpm").value=bpm;
-}
-</script>
-<div style="float:right;color:#888;background:#222;padding:5px;height:50px">
-<b>AutoBeats</b> is a auto composer.<br/> Just need a 'Title', and optionally 'BPM'.<br/>
-<a href="http://www.g200kg.com/">g200kg</a>
-</div>
-<h1 style="color:#ddd;height:50px">AutoBeats</h1>
-<div style="background:#555;color:#ccc;padding:10px;margin:5px">
-<table>
-<tr><td>Title</td><td><input id="title" value="Hello, AutoBeats." onchange="Setup()"></input></td></tr>
-<tr><td>BPM</td><td><input id="bpmauto" type="checkbox" checked onchange="Setup()"></input>auto  <input id="bpm" min="1" max="300" value="0" size="4" onchange="Setup()"></input></td></tr>
-</table>
-<button onclick="beats.start()">Play</button> <button onclick="beats.stop()">Stop</button>
-</div>
-<canvas id="canvas" width="512" height="512" style="width:100%;height:400px">
-</div>
-</body>
+  <head>
+    <title>AutoBeats - Create Music from Text!</title>
+    <link rel="import" href="bower_components/paper-button/paper-button.html">
+    <link rel="import" href="bower_components/paper-input/paper-input.html">
+    <link rel="import" href="bower_components/paper-ripple/paper-ripple.html">
+    <link rel="import" href="components/x-webaudio-polymer-analyser.html">
+    <style>
+    body {
+      font-family:arial;
+    }
+    h2 {
+      margin:0px 10px;
+    }
+    paper-button[raised].colored {
+      background: #4285f4;
+      color: #fff;
+    }
+    #title {
+      width:300px;
+    }
+    .title-input {
+      margin:0px 0px 0px 10px;
+    }
+    /* FAB */
+    .fab {
+      position: relative;
+      display: inline-block;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      color: #fff;
+      overflow: hidden;
+      transition: box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      transition-delay: 0.2s;
+      box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
+    }
+    
+    .fab.twitter {
+      background-color: #5caaee;
+      background-image:url("");
+    }
+
+    .fab:active {
+      box-shadow: 0 8px 17px 0 rgba(0, 0, 0, 0.2);
+      transition-delay: 0s;
+    }
+    
+    .fab > core-icon {
+      margin: 16px;
+    }
+    
+    .fab > core-icon::shadow path {
+      fill: #fff;
+    }
+
+    .twicon {
+      margin:13px 0px 0px 8px;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    .tweet-button {
+      float:left;
+      margin:-5px 0px 0px 20px;
+    }
+    .control-area {
+      margin:10px 0px 0px 0px;
+    }
+    .controls {
+      float:left;
+      margin:3px 0px 0px 35px;
+    }
+    .analyser {
+      margin-left:10px;
+      clear:both;
+    }
+    </style>
+  </head>
+  <body>
+    <script src="autobeats.js"></script>
+    <h2>Tweet your AutoBeats!</h2>
+    
+    <div class="title-input">
+      <paper-input id="title" label="Title" floatingLabel value="Sample Song"></paper-input>
+    </div>
+
+    <div class="analyser">
+      <x-webaudio-polymer-analyser id="analyser" dispmode="analyser" length="50" margin="20" ></x-webaudio-polymer-analyser>
+    </div>
+
+    <div class="control-area">
+      <div class="tweet-button">
+        <div class="fab twitter" id="tweet">
+          <img class="twicon" src="images/Twitter_bird_logo_2012.svg.png" width="40px">
+          <paper-ripple class="circle recenteringTouch" fit></paper-ripple>
+        </div>
+      </div>    
+      <div class="controls">
+        <paper-button id="playbeat" class="colored" raised>Play</paper-button>
+        <paper-button id="stopbeat" raised>Stop</paper-button>
+      </div>
+    </div>
+      
+    <script type="text/javascript">
+    window.addEventListener("polymer-ready", function(event){
+        var isPlaying=false;
+        document.body.addEventListener("keydown", function(event){
+            console.log(event.keyCode);
+            switch(event.keyCode) {
+                case 13: // return key
+                    if(isPlaying===false) {
+                        var elm = document.getElementById("playbeat");
+                        var evt = document.createEvent("MouseEvents");
+                        evt.initEvent("click", true, true, window, 1, 0, 0, 0, 0, false, false, false, false, 0, null);
+                        elm.dispatchEvent(evt);
+                    }
+                break;
+            }
+        });
+        var pm=document.getElementById("analyser");
+        pm.setDesign.bind(pm)(0);
+        pm.initialDraw.bind(pm)();
+
+        var audioctx=new AudioContext();
+        pm.setAudioContext.bind(pm)(audioctx);        
+
+        var gain=audioctx.createGain();
+        
+        pm.connectWebAudio(gain);
+
+        gain.connect(audioctx.destination);
+
+	      beats=new AutoBeats("Sample Song", null, audioctx, gain);
+
+        document.getElementById("playbeat").addEventListener("click", function(event){
+            beats.start();
+            pm.start();
+            event.target.setAttribute("disabled", "disabled");
+        });
+        document.getElementById("stopbeat").addEventListener("click", function(event){
+            beats.stop();
+            setTimeout(function(){pm.stop()}, 3000);
+            document.getElementById("playbeat").removeAttribute("disabled");
+        });
+        document.getElementById("title").addEventListener("change", function(event){
+            beats.setTitle(event.target.value);
+        });
+        document.getElementById("tweet").addEventListener("click", function(event){
+            console.log("tweet");
+            var value=encodeURIComponent(document.title+" // "+location.href+"?title="+document.getElementById("title").value);
+            var tu="http://twitter.com/?status="+value;
+            if(!window.open(tu,'surfing')) location.href=f; 
+        });
+    
+        // obtain values from get prameter
+        var result={};
+        if( 1 < window.location.search.length ){
+            var query = window.location.search.substring( 1 );
+            var parameters = query.split( '&' );
+            for( var i = 0; i < parameters.length; i++ ) {
+                var element = parameters[ i ].split( '=' );
+                var paramName = decodeURIComponent( element[ 0 ] );
+                var paramValue = decodeURIComponent( element[ 1 ] );
+                result[ paramName ] = paramValue;
+            }
+        }
+        if(typeof result.title!="undefined") {
+            document.getElementById("title").value=result.title;
+        }
+
+        
+    });
+
+    </script>
+    
+  </body>
 </html>
