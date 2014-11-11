@@ -76,7 +76,7 @@
             beats.setTitle(event.target.value);
         });
         document.getElementById("tweet").addEventListener("click", function(event){
-            var value=encodeURIComponent(document.title+" >>> "+location.href+"?title="+document.getElementById("title").value);
+            var value=encodeURIComponent(document.title+" >>> "+location.href.split("?").shift()+"?t="+document.getElementById("title").value);
             var tu="http://twitter.com/?status="+value;
             if(!window.open(tu,'surfing')) location.href=f; 
         });
@@ -93,8 +93,8 @@
                 result[ paramName ] = paramValue;
             }
         }
-        if(typeof result.title!="undefined") {
-            document.getElementById("title").value=result.title;
+        if(typeof result.t!="undefined") {
+            document.getElementById("title").value=result.t;
         }
 
         
