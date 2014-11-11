@@ -1,85 +1,16 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>AutoBeats - Create Music from Text!</title>
+    <title>AutoBeats by @g200kg - Create Music from Text!</title>
     <link rel="import" href="bower_components/paper-button/paper-button.html">
     <link rel="import" href="bower_components/paper-input/paper-input.html">
     <link rel="import" href="bower_components/paper-ripple/paper-ripple.html">
     <link rel="import" href="components/x-webaudio-polymer-analyser.html">
-    <style>
-    body {
-      font-family:arial;
-    }
-    h2 {
-      margin:0px 10px;
-    }
-    paper-button[raised].colored {
-      background: #4285f4;
-      color: #fff;
-    }
-    #title {
-      width:300px;
-    }
-    .title-input {
-      margin:0px 0px 0px 10px;
-    }
-    /* FAB */
-    .fab {
-      position: relative;
-      display: inline-block;
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      color: #fff;
-      overflow: hidden;
-      transition: box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      transition-delay: 0.2s;
-      box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
-    }
-    
-    .fab.twitter {
-      background-color: #5caaee;
-      background-image:url("");
-    }
-
-    .fab:active {
-      box-shadow: 0 8px 17px 0 rgba(0, 0, 0, 0.2);
-      transition-delay: 0s;
-    }
-    
-    .fab > core-icon {
-      margin: 16px;
-    }
-    
-    .fab > core-icon::shadow path {
-      fill: #fff;
-    }
-
-    .twicon {
-      margin:13px 0px 0px 8px;
-      -webkit-user-select: none;
-      user-select: none;
-    }
-    .tweet-button {
-      float:left;
-      margin:-5px 0px 0px 20px;
-    }
-    .control-area {
-      margin:10px 0px 0px 0px;
-    }
-    .controls {
-      float:left;
-      margin:3px 0px 0px 35px;
-    }
-    .analyser {
-      margin-left:10px;
-      clear:both;
-    }
-    </style>
+    <link rel="stylesheet" type="text/css" href="css/main.css">
   </head>
   <body>
-    <script src="autobeats.js"></script>
     <h2>Tweet your AutoBeats!</h2>
+    <div class="poweredby">Powered by <a href="https://github.com/g200kg/AutoBeats">g200kg!</a></div>
     
     <div class="title-input">
       <paper-input id="title" label="Title" floatingLabel value="Sample Song"></paper-input>
@@ -102,11 +33,11 @@
       </div>
     </div>
       
+    <script src="autobeats.js"></script>
     <script type="text/javascript">
     window.addEventListener("polymer-ready", function(event){
         var isPlaying=false;
         document.body.addEventListener("keydown", function(event){
-            console.log(event.keyCode);
             switch(event.keyCode) {
                 case 13: // return key
                     if(isPlaying===false) {
@@ -126,9 +57,7 @@
         pm.setAudioContext.bind(pm)(audioctx);        
 
         var gain=audioctx.createGain();
-        
         pm.connectWebAudio(gain);
-
         gain.connect(audioctx.destination);
 
 	      beats=new AutoBeats("Sample Song", null, audioctx, gain);
@@ -147,8 +76,7 @@
             beats.setTitle(event.target.value);
         });
         document.getElementById("tweet").addEventListener("click", function(event){
-            console.log("tweet");
-            var value=encodeURIComponent(document.title+" // "+location.href+"?title="+document.getElementById("title").value);
+            var value=encodeURIComponent(document.title+" >>> "+location.href+"?title="+document.getElementById("title").value);
             var tu="http://twitter.com/?status="+value;
             if(!window.open(tu,'surfing')) location.href=f; 
         });
